@@ -1,3 +1,5 @@
+https://chatgpt.com/canvas/shared/67fd7d8a943881918892b4915d10c46b
+
 ## Okruhy témat pro test z BDM
 
 ### 1. Jaké jsou tři základní funkce peněz?
