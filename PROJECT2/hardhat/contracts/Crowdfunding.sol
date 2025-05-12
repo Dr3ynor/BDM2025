@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19; // Použijte aktuální stabilní verzi
+pragma solidity ^0.8.30; // Použijte aktuální stabilní verzi
 
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol"; // Proti re-entrancy útokům
 

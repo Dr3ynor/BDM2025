@@ -1,14 +1,14 @@
 // --- Konfigurace ---
 // !! TOTO MUSÍTE NAHRADIT ADRESOU VAŠEHO NASAZENÉHO KONTRAKTU !!
-const contractAddress = "0x51140d3A3B639051C14A446Ec3c082E7F077C03B";
-// 0x51140d3A3B639051C14A446Ec3c082E7F077C03B
-
+const contractAddress = "0xaAE5C76Cc40aaA565f0cd04307732A8De67c6839";
+// metamask address: 0x51140d3A3B639051C14A446Ec3c082E7F077C03B
+// Z hardhatu: 0xaAE5C76Cc40aaA565f0cd04307732A8De67c6839
 
 // !! TOTO MUSÍTE NAHRADIT ABI VAŠEHO ZKOMPILOVANÉHO KONTRAKTU !!
 // ABI (Application Binary Interface) je JSON popis rozhraní kontraktu.
 // Získáte ho po kompilaci kontraktu (např. v adresáři artifacts/ při použití Hardhat).
 const contractAbi = [
-    [
+    
         {
             "inputs": [],
             "name": "ReentrancyGuardReentrantCall",
@@ -399,7 +399,7 @@ const contractAbi = [
             "stateMutability": "view",
             "type": "function"
         }
-    ]
+    
 ];
 
 // --- Globální proměnné ---
@@ -626,6 +626,7 @@ async function loadProjects() {
 
         // Počkat na všechny promise
         const loadedProjects = (await Promise.all(projectPromises)).filter(p => p !== null); // Odstranit neúspěšně načtené
+        console.log("Target Amount:", loadedProjects.map(p => p.targetAmount));
         console.log("Všechny detaily projektů načteny.");
         projectsCache = loadedProjects; // Uložit do cache
         return projectsCache;
@@ -720,7 +721,7 @@ function createProjectCard(project) {
         ${imageUrlHtml}
         <h3>${project.title} (ID: ${project.id})</h3>
         <p>${project.description}</p>
-        <p><strong>Cíl:</strong> ${project.targetAmount} ETH</p>
+        <p><strong>Cíl:</strong> ${project.targetAmount * 1e-18} ETH</p>
         <p><strong>Vybráno:</strong> ${project.raisedAmount} ETH (${project.totalContributors} investorů)</p>
          ${progressBarHtml}
         <p><strong>Deadline:</strong> ${formatTimestamp(project.deadline)}</p>
@@ -908,7 +909,8 @@ async function handleCreateProject(event) {
     try {
         // Kontrakt očekává cílovou částku v ETH, převede si ji na Wei sám
         // Doba trvání je v dnech
-        const targetAmount = parseFloat(targetEth); // Není třeba převádět na Wei zde
+        // const targetAmount = parseFloat(targetEth); // Není třeba převádět na Wei zde
+        const targetAmount = ethers.utils.parseEther(targetEth); // Převod ETH na Wei
         const duration = parseInt(durationDays);
 
         if (isNaN(targetAmount) || targetAmount <= 0) {
@@ -1100,7 +1102,7 @@ async function updateSingleProjectData(projectId) {
             totalContributors: proj.totalContributors.toNumber(),
             myContribution: ethers.utils.formatEther(myContribution)
         };
-
+        console.log("Target Amount:", updatedProjectData.targetAmount);
         // Najít a nahradit projekt v cache
         const index = projectsCache.findIndex(p => p.id === projectId);
         if (index !== -1) {

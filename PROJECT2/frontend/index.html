@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="cs">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ETH Crowdfunding</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"
-            integrity="sha512-FDcVY+g7vcGWGWdAAGiDAvyGGCRMor8Pz09ILWERSjTkduZaTTqOQArNLInL5Ki7GyM6szjTOH2kuCaZS0czig=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        integrity="sha512-FDcVY+g7vcGWGWdAAGiDAvyGGCRMor8Pz09ILWERSjTkduZaTTqOQArNLInL5Ki7GyM6szjTOH2kuCaZS0czig=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
+
 <body>
     <header>
         <h1>ETH Crowdfunding Platforma</h1>
@@ -17,7 +19,8 @@
             <p id="user-address" style="display: none;">Připojen: <span id="address"></span></p>
         </div>
         <div id="metamask-warning" class="warning" style="display: none;">
-            MetaMask není nainstalován. Prosím, <a href="https://metamask.io/download/" target="_blank" rel="noopener noreferrer">nainstalujte si MetaMask</a> pro použití této aplikace.
+            MetaMask není nainstalován. Prosím, <a href="https://metamask.io/download/" target="_blank"
+                rel="noopener noreferrer">nainstalujte si MetaMask</a> pro použití této aplikace.
         </div>
     </header>
 
@@ -38,10 +41,10 @@
                 <input type="number" id="target-eth" step="0.01" min="0.01" required>
 
                 <label for="duration-days">Doba trvání (dny):</label>
-                <input type="number" id="duration-days" min="1" required>
+                <input type="number" id="duration-days">
 
                 <button type="submit">Vytvořit Projekt</button>
-                 <p id="create-status" class="status-message"></p>
+                <p id="create-status" class="status-message"></p>
             </form>
         </section>
 
@@ -49,7 +52,7 @@
 
         <section id="projects-section">
             <h2>Probíhající Projekty</h2>
-             <div class="filters">
+            <div class="filters">
                 <label for="sort-by">Seřadit podle:</label>
                 <select id="sort-by">
                     <option value="newest">Nejnovější</option>
@@ -68,36 +71,38 @@
 
         <hr>
 
-         <section id="my-investments-section">
-             <h2>Moje Investice</h2>
-             <div id="my-investments-list" class="projects-grid">
-                  <p id="loading-my-investments">Načítání mých investic...</p>
-             </div>
-         </section>
+        <section id="my-investments-section">
+            <h2>Moje Investice</h2>
+            <div id="my-investments-list" class="projects-grid">
+                <p id="loading-my-investments">Načítání mých investic...</p>
+            </div>
+        </section>
 
         <hr>
 
-         <section id="finished-projects-section">
-             <h2>Dokončené Projekty</h2>
-               <label for="finished-filter">Zobrazit:</label>
-                <select id="finished-filter">
-                    <option value="all">Všechny dokončené</option>
-                    <option value="successful">Úspěšné</option>
-                    <option value="expired">Neúspěšné</option>
-                </select>
-             <div id="finished-projects-list" class="projects-grid">
-                  <p id="loading-finished-projects">Načítání dokončených projektů...</p>
-             </div>
-         </section>
+        <section id="finished-projects-section">
+            <h2>Dokončené Projekty</h2>
+            <label for="finished-filter">Zobrazit:</label>
+            <select id="finished-filter">
+                <option value="all">Všechny dokončené</option>
+                <option value="successful">Úspěšné</option>
+                <option value="expired">Neúspěšné</option>
+            </select>
+            <div id="finished-projects-list" class="projects-grid">
+                <p id="loading-finished-projects">Načítání dokončených projektů...</p>
+            </div>
+        </section>
 
 
     </main>
 
     <footer>
         <p>Jednoduchá Crowdfunding DApp</p>
-         <p id="error-message" class="error"></p>
+        <p id="error-message" class="error"></p>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <script src="app.js"></script>
 </body>
+
 </html>
