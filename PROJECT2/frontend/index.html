@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETH Crowdfunding</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"
+            integrity="sha512-FDcVY+g7vcGWGWdAAGiDAvyGGCRMor8Pz09ILWERSjTkduZaTTqOQArNLInL5Ki7GyM6szjTOH2kuCaZS0czig=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+    <header>
+        <h1>ETH Crowdfunding Platforma</h1>
+        <div id="connection-status">
+            <button id="connect-wallet-btn">Připojit MetaMask</button>
+            <p id="user-address" style="display: none;">Připojen: <span id="address"></span></p>
+        </div>
+        <div id="metamask-warning" class="warning" style="display: none;">
+            MetaMask není nainstalován. Prosím, <a href="https://metamask.io/download/" target="_blank" rel="noopener noreferrer">nainstalujte si MetaMask</a> pro použití této aplikace.
+        </div>
+    </header>
+
+    <main>
+        <section id="create-project-section">
+            <h2>Vytvořit nový projekt</h2>
+            <form id="create-project-form">
+                <label for="title">Název:</label>
+                <input type="text" id="title" required>
+
+                <label for="description">Popis:</label>
+                <textarea id="description" rows="3" required></textarea>
+
+                <label for="image-url">URL obrázku (volitelné):</label>
+                <input type="url" id="image-url">
+
+                <label for="target-eth">Cílová částka (ETH):</label>
+                <input type="number" id="target-eth" step="0.01" min="0.01" required>
+
+                <label for="duration-days">Doba trvání (dny):</label>
+                <input type="number" id="duration-days" min="1" required>
+
+                <button type="submit">Vytvořit Projekt</button>
+                 <p id="create-status" class="status-message"></p>
+            </form>
+        </section>
+
+        <hr>
+
+        <section id="projects-section">
+            <h2>Probíhající Projekty</h2>
+             <div class="filters">
+                <label for="sort-by">Seřadit podle:</label>
+                <select id="sort-by">
+                    <option value="newest">Nejnovější</option>
+                    <option value="oldest">Nejstarší</option>
+                    <option value="deadline">Blížící se deadline</option>
+                </select>
+                <label for="filter-creator">Filtr podle tvůrce:</label>
+                <input type="text" id="filter-creator" placeholder="Adresa tvůrce (0x...)">
+                <button id="filter-btn">Filtrovat</button>
+                <button id="reset-filter-btn">Zrušit filtr</button>
+            </div>
+            <div id="projects-list" class="projects-grid">
+                <p id="loading-projects">Načítání projektů...</p>
+            </div>
+        </section>
+
+        <hr>
+
+         <section id="my-investments-section">
+             <h2>Moje Investice</h2>
+             <div id="my-investments-list" class="projects-grid">
+                  <p id="loading-my-investments">Načítání mých investic...</p>
+             </div>
+         </section>
+
+        <hr>
+
+         <section id="finished-projects-section">
+             <h2>Dokončené Projekty</h2>
+               <label for="finished-filter">Zobrazit:</label>
+                <select id="finished-filter">
+                    <option value="all">Všechny dokončené</option>
+                    <option value="successful">Úspěšné</option>
+                    <option value="expired">Neúspěšné</option>
+                </select>
+             <div id="finished-projects-list" class="projects-grid">
+                  <p id="loading-finished-projects">Načítání dokončených projektů...</p>
+             </div>
+         </section>
+
+
+    </main>
+
+    <footer>
+        <p>Jednoduchá Crowdfunding DApp</p>
+         <p id="error-message" class="error"></p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
