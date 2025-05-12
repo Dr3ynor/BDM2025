@@ -1,39 +1,36 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19; // Použijte aktuální stabilní verzi
+pragma solidity ^0.8.19;
 
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol"; // Proti re-entrancy útokům
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol"; // re-entrancy attack protection
 
 contract Crowdfunding is ReentrancyGuard {
 
-    // Struktura pro uchování informací o projektu
     struct Project {
-        address payable creator; // Adresa tvůrce projektu (payable pro příjem prostředků)
-        string title;            // Název projektu
-        string description;      // Popis projektu
-        string imageUrl;         // URL obrázku projektu (nebo IPFS hash)
-        uint256 targetAmount;    // Cílová částka v Wei (1 ETH = 1e18 Wei)
-        uint256 deadline;        // Časový limit projektu (Unix timestamp)
-        uint256 raisedAmount;    // Vybraná částka v Wei
-        State state;             // Aktuální stav projektu
-        mapping(address => uint256) contributions; // Mapa investorů a jejich příspěvků
-        address[] investors;     // Pole adres investorů (pro snazší refundaci, pozor na gas!)
+        address payable creator;
+        string title;
+        string description;
+        string imageUrl;
+        uint256 targetAmount;
+        uint256 deadline;        // (unix timestamp)
+        uint256 raisedAmount;    // amount in wei
+        State state;
+        mapping(address => uint256) contributions; // Map of contributions by address
+        address[] investors;     // array of unique investors
     }
 
-    // Stavy projektu
     enum State {
-        Fundraising, // Probíhá sbírka
-        Expired,     // Vypršel čas, cíl nebyl dosažen
-        Successful   // Cíl dosažen
+        Fundraising,
+        Expired,     // time expired or project failed after deadline
+        Successful
     }
 
-    // Mapa projektů podle jejich ID
     mapping(uint256 => Project) public projects;
 
-    // Počítadlo projektů pro přidělování unikátních ID
+    // counter for project IDs
     uint256 public projectCounter;
 
-    // --- Eventy ---
-    // Eventy umožňují frontendu efektivně reagovat na změny v kontraktu
+    // --- events ---
+    // events for frontend to listen to
     event ProjectCreated(
         uint256 indexed projectId,
         address indexed creator,
@@ -65,21 +62,13 @@ contract Crowdfunding is ReentrancyGuard {
         State newState
     );
 
-    // --- Funkce ---
+    // --- functions ---
 
-    /**
-     * @notice Vytvoří nový crowdfundingový projekt.
-     * @param _title Název projektu.
-     * @param _description Popis projektu.
-     * @param _imageUrl URL obrázku nebo IPFS hash.
-     * @param _targetAmount Cílová částka v ETH (bude převedena na Wei).
-     * @param _durationDays Délka trvání kampaně ve dnech.
-     */
     function createProject(
         string memory _title,
         string memory _description,
         string memory _imageUrl,
-        uint256 _targetAmount, // Očekáváme hodnotu v ETH pro jednoduchost ve frontendu
+        uint256 _targetAmount, // target amount in ether
         uint256 _durationDays
     ) public {
         require(bytes(_title).length > 0, "Title cannot be empty");
@@ -87,19 +76,17 @@ contract Crowdfunding is ReentrancyGuard {
         require(_durationDays > 0, "Duration must be at least 1 day");
 
         uint256 projectId = projectCounter;
-        Project storage newProject = projects[projectId]; // Získání reference do storage
+        Project storage newProject = projects[projectId]; // get reference to the new project
 
-        newProject.creator = payable(msg.sender); // Uložení tvůrce
+        newProject.creator = payable(msg.sender); // saving the creator's address
         newProject.title = _title;
         newProject.description = _description;
         newProject.imageUrl = _imageUrl;
-        // Převod ETH na Wei - POZOR: frontend musí posílat ETH!
         newProject.targetAmount = _targetAmount * 1 ether;
-        // Výpočet deadline (aktuální čas + trvání v sekundách)
         newProject.deadline = block.timestamp + (_durationDays * 1 days);
         newProject.state = State.Fundraising; // Počáteční stav
 
-        projectCounter++; // Inkrementace pro další projekt
+        projectCounter++; // increment project counter for next project ID
 
         emit ProjectCreated(
             projectId,
@@ -110,38 +97,28 @@ contract Crowdfunding is ReentrancyGuard {
         );
     }
 
-    /**
-     * @notice Umožní uživateli přispět na projekt.
-     * @param _projectId ID projektu, na který se přispívá.
-     */
+
     function contribute(uint256 _projectId) public payable nonReentrant {
         Project storage project = projects[_projectId];
 
-        require(project.creator != address(0), "Project does not exist"); // Kontrola existence projektu
+        require(project.creator != address(0), "Project does not exist"); // check if project exists
         require(project.state == State.Fundraising, "Project is not accepting funds");
         require(block.timestamp < project.deadline, "Project deadline has passed");
         require(msg.value > 0, "Contribution must be positive");
 
-        // Zaznamenání příspěvku
+        // 
         uint256 currentContribution = project.contributions[msg.sender];
         if (currentContribution == 0) {
-            // Přidat investora do pole, pouze pokud přispívá poprvé
+            // add investor to the list if this is their first contribution
             project.investors.push(msg.sender);
         }
         project.contributions[msg.sender] += msg.value;
         project.raisedAmount += msg.value;
 
         emit ContributionMade(_projectId, msg.sender, msg.value);
-
-        // Kontrola, zda projekt dosáhl cíle po tomto příspěvku
-        // (Stav se ale mění až po deadline)
     }
 
-    /**
-     * @notice Zkontroluje stav projektu po uplynutí deadline a případně změní stav.
-     * Tuto funkci může zavolat kdokoli, ale změna stavu nastane jen jednou.
-     * @param _projectId ID projektu ke kontrole.
-     */
+
     function checkProjectState(uint256 _projectId) internal {
          Project storage project = projects[_projectId];
          if (project.state == State.Fundraising && block.timestamp >= project.deadline) {
@@ -156,55 +133,43 @@ contract Crowdfunding is ReentrancyGuard {
     }
 
 
-    /**
-     * @notice Umožní tvůrci projektu vybrat prostředky, pokud byl projekt úspěšný.
-     * @param _projectId ID projektu.
-     */
     function claimFunds(uint256 _projectId) public nonReentrant {
-        checkProjectState(_projectId); // Nejprve aktualizujeme stav, pokud uplynul deadline
+        checkProjectState(_projectId); // update project state first
         Project storage project = projects[_projectId];
 
         require(project.state == State.Successful, "Project was not successful or not finished");
         require(msg.sender == project.creator, "Only the creator can claim funds");
 
         uint256 amountToClaim = project.raisedAmount;
-        project.raisedAmount = 0; // Nulování před odesláním (Checks-Effects-Interactions)
+        project.raisedAmount = 0; // zero out the raised amount to prevent re-entrancy
 
         emit FundsClaimed(_projectId, project.creator, amountToClaim);
 
-        // Odeslání prostředků tvůrci
+        // sendintg funds to the project creator
         (bool success, ) = project.creator.call{value: amountToClaim}("");
         require(success, "Failed to send funds to creator");
     }
 
-    /**
-     * @notice Umožní investorovi získat zpět své prostředky, pokud projekt neuspěl.
-     * @param _projectId ID projektu.
-     */
+
     function requestRefund(uint256 _projectId) public nonReentrant {
-        checkProjectState(_projectId); // Nejprve aktualizujeme stav, pokud uplynul deadline
+        checkProjectState(_projectId); // update project state first
         Project storage project = projects[_projectId];
 
         require(project.state == State.Expired, "Project did not expire unsuccessfully");
         uint256 contributionAmount = project.contributions[msg.sender];
         require(contributionAmount > 0, "You did not contribute to this project or already refunded");
 
-        project.contributions[msg.sender] = 0; // Nulování před odesláním (Checks-Effects-Interactions)
-        // Poznámka: Neodečítáme z project.raisedAmount, protože celková suma už není relevantní
-        // a snižovalo by to transparentnost celkově vybrané částky před refundacemi.
+        project.contributions[msg.sender] = 0; // zero out the contribution to prevent re-entrancy
+        // not counting raisedAmount, because the total amount is not relevant anymore
+        // and it would reduce the transparency of the total amount raised before refunds.
 
         emit RefundIssued(_projectId, msg.sender, contributionAmount);
 
-        // Odeslání prostředků zpět investorovi
+        // sending funds back to the contributor
         (bool success, ) = payable(msg.sender).call{value: contributionAmount}("");
         require(success, "Refund failed");
     }
 
-    // --- Funkce pro čtení dat (View/Pure) ---
-
-    /**
-     * @notice Vrátí detaily projektu.
-     */
     function getProject(uint256 _projectId) public view returns (
         address creator,
         string memory title,
@@ -227,27 +192,20 @@ contract Crowdfunding is ReentrancyGuard {
             project.deadline,
             project.raisedAmount,
             project.state,
-            project.investors.length // Počet unikátních investorů
+            project.investors.length // only unique investors
         );
     }
 
-     /**
-     * @notice Vrátí počet všech projektů.
-     */
     function getProjectsCount() public view returns (uint256) {
         return projectCounter;
     }
 
-    /**
-     * @notice Vrátí výši příspěvku konkrétního uživatele na konkrétní projekt.
-     */
+    /// get the contribution of a specific address for a specific project
     function getContribution(uint256 _projectId, address _contributor) public view returns (uint256) {
         return projects[_projectId].contributions[_contributor];
     }
 
-     /**
-     * @notice Vrátí seznam investorů pro daný projekt (může být náročné na gas pro hodně investorů).
-     */
+    // get the list of investors for a specific project
     function getInvestors(uint256 _projectId) public view returns (address[] memory) {
         return projects[_projectId].investors;
     }
