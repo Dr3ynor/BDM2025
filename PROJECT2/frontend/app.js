@@ -473,6 +473,7 @@ async function init() {
     } else {
         console.warn('MetaMask není nainstalován!');
         metamaskWarningDiv.style.display = 'block';
+        connectWalletBtn.style.display = 'none';
         connectWalletBtn.disabled = true;
     }
 
@@ -497,13 +498,13 @@ function handleAccountsChanged(accounts) {
         console.log('MetaMask odpojen.');
         userAddress = null;
         signer = null;
-        contract = null; // Zrušit instanci kontraktu se signerem
+        contract = null;
         connectWalletBtn.textContent = 'Připojit MetaMask';
         connectWalletBtn.disabled = false;
         userAddressP.style.display = 'none';
-        // Znovu načíst projekty bez specifických dat uživatele
+        // reload projects without users data
         loadAndDisplayProjects();
-        clearMyInvestments(); // Vyčistit sekci mých investic
+        clearMyInvestments();
     } else {
         console.log('Účet změněn:', accounts[0]);
         // join with new account
@@ -527,7 +528,7 @@ async function connectWallet() {
         addressSpan.textContent = `${userAddress.substring(0, 6)}...${userAddress.substring(userAddress.length - 4)}`;
         userAddressP.style.display = 'block';
         connectWalletBtn.textContent = 'Připojeno';
-        connectWalletBtn.disabled = true; // Už je připojeno
+        connectWalletBtn.disabled = true;
 
         // create instance of contract to interact with
         contract = new ethers.Contract(contractAddress, contractAbi, signer);
@@ -580,7 +581,8 @@ async function loadProjects() {
                                 console.warn(`Nepodařilo se načíst příspěvek pro projekt ${i}: ${err.message}`);
                             }
                         }
-
+                        
+                        console.log("Image url:", proj.imageUrl);
                         // assigining values to object
                         return {
                             id: i,
@@ -680,7 +682,7 @@ function createProjectCard(project) {
         } catch (_) {
             // if URL is invalid, log the error and use a placeholder
             console.warn(`Neplatné URL obrázku pro projekt ${project.id}: ${project.imageUrl}`);
-            // imageUrlHtml = `<img src="placeholder.png" alt="${project.title}">`; // PLACEHOLDER
+            imageUrlHtml = `<img src="placeholder.png" alt="${project.title}">`; // PLACEHOLDER
         }
     }
 
