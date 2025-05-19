@@ -608,7 +608,7 @@ async function loadProjects() {
 
         const loadedProjects = (await Promise.all(projectPromises)).filter(p => p !== null); // Odstranit neúspěšně načtené
         console.log("Všechny detaily projektů načteny.");
-        projectsCache = loadedProjects; // Uložit do cache
+        projectsCache = loadedProjects; // load to cache
         return projectsCache;
 
     } catch (error) {
@@ -625,7 +625,7 @@ function formatTimestamp(timestamp) {
     if (!timestamp) return 'N/A';
     // Timestamp is in seconds, convert to milliseconds
     const date = new Date(timestamp * 1000);
-    return date.toLocaleString('cs-CZ'); // Formát pro Česko
+    return date.toLocaleString('cs-CZ');
 }
 
 // get remaining time

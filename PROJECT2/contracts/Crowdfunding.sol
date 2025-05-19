@@ -29,7 +29,6 @@ contract Crowdfunding is ReentrancyGuard {
     // counter for project IDs
     uint256 public projectCounter;
 
-    // --- events ---
     // events for frontend to listen to
     event ProjectCreated(
         uint256 indexed projectId,
@@ -62,13 +61,11 @@ contract Crowdfunding is ReentrancyGuard {
         State newState
     );
 
-    // --- functions ---
-
     function createProject(
         string memory _title,
         string memory _description,
         string memory _imageUrl,
-        uint256 _targetAmount, // target amount in ether
+        uint256 _targetAmount,
         uint256 _durationDays
     ) public {
         require(bytes(_title).length > 0, "Title cannot be empty");
@@ -84,9 +81,9 @@ contract Crowdfunding is ReentrancyGuard {
         newProject.imageUrl = _imageUrl;
         newProject.targetAmount = _targetAmount * 1 ether;
         newProject.deadline = block.timestamp + (_durationDays * 1 days);
-        newProject.state = State.Fundraising; // Počáteční stav
+        newProject.state = State.Fundraising; // init state
 
-        projectCounter++; // increment project counter for next project ID
+        projectCounter++;
 
         emit ProjectCreated(
             projectId,
@@ -101,7 +98,7 @@ contract Crowdfunding is ReentrancyGuard {
     function contribute(uint256 _projectId) public payable nonReentrant {
         Project storage project = projects[_projectId];
 
-        require(project.creator != address(0), "Project does not exist"); // check if project exists
+        require(project.creator != address(0), "Project does not exist");
         require(project.state == State.Fundraising, "Project is not accepting funds");
         require(block.timestamp < project.deadline, "Project deadline has passed");
         require(msg.value > 0, "Contribution must be positive");
@@ -134,7 +131,7 @@ contract Crowdfunding is ReentrancyGuard {
 
 
     function claimFunds(uint256 _projectId) public nonReentrant {
-        checkProjectState(_projectId); // update project state first
+        checkProjectState(_projectId);
         Project storage project = projects[_projectId];
 
         require(project.state == State.Successful, "Project was not successful or not finished");
@@ -161,7 +158,6 @@ contract Crowdfunding is ReentrancyGuard {
 
         project.contributions[msg.sender] = 0; // zero out the contribution to prevent re-entrancy
         // not counting raisedAmount, because the total amount is not relevant anymore
-        // and it would reduce the transparency of the total amount raised before refunds.
 
         emit RefundIssued(_projectId, msg.sender, contributionAmount);
 
